@@ -180,20 +180,12 @@ After deletion, related Redis config and usage keys are cleared.
 
 ## Missing API Key Rule
 
-After deleting a limit, checking or querying usage for that key returns `404`:
+After deleting a rate limit, checking or querying usage for that apiKey returns `404`:
 
 ```bash
 curl -i 'http://localhost:8080/check?apiKey=curl-demo'
 ```
 
-```text
-HTTP/1.1 404
-```
-
 ```bash
 curl -i 'http://localhost:8080/usage?apiKey=curl-demo'
-```
-
-```text
-HTTP/1.1 404
 ```

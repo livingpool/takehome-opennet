@@ -2,14 +2,14 @@ spring:
   application:
     name: demo
 
-# define mysql properties here
+  # define mysql properties here
   datasource:
     url: jdbc:mysql://localhost:3306/taskdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: taskuser
     password: taskpass
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-# define redis properties here
+  # define redis properties here
   data:
     redis:
       host: localhost

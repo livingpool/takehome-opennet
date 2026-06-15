@@ -1,16 +1,15 @@
 package com.example.demo.mq;
 
+import com.example.demo.config.RocketMqProperties;
+import com.example.demo.dto.RateLimitEventMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import com.example.demo.config.RocketMqProperties;
-import com.example.demo.dto.RateLimitEventMessage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @ConditionalOnProperty(prefix = "rocketmq", name = "enabled", havingValue = "true")
@@ -23,7 +22,7 @@ public class RocketMqRateLimitEventPublisher implements RateLimitEventPublisher 
     private final RocketMqProperties properties;
 
     public RocketMqRateLimitEventPublisher(DefaultMQProducer producer, ObjectMapper objectMapper,
-            RocketMqProperties properties) {
+                                           RocketMqProperties properties) {
         this.producer = producer;
         this.objectMapper = objectMapper;
         this.properties = properties;

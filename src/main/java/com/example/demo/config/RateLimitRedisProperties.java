@@ -1,8 +1,8 @@
 package com.example.demo.config;
 
-import java.time.Duration;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
 
 @ConfigurationProperties(prefix = "rate-limit.redis")
 public record RateLimitRedisProperties(

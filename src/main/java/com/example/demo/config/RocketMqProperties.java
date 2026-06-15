@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rocketmq")
 public record RocketMqProperties(boolean enabled, String nameServer, String producerGroup,
-        String topic, int sendTimeoutMs) {
+                                 String topic, int sendTimeoutMs) {
     public RocketMqProperties {
         if (nameServer == null || nameServer.isBlank()) {
             nameServer = "localhost:9876";

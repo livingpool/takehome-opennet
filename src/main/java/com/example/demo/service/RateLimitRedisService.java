@@ -1,26 +1,46 @@
 package com.example.demo.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.stereotype.Service;
-
 import com.example.demo.config.RateLimitRedisProperties;
 import com.example.demo.model.CachedRateLimitConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RateLimitRedisService {
+    private static final RedisScript<List> INCREMENT_USAGE_SCRIPT = RedisScript.of("""
+            local count = redis.call('INCR', KEYS[1])
+            if count == 1 then
+                redis.call('EXPIRE', KEYS[1], ARGV[1])
+            end
+            local ttl = redis.call('TTL', KEYS[1])
+            return {count, ttl}
+            """, List.class);
+    private static final RedisScript<List> GET_USAGE_SCRIPT = RedisScript.of("""
+            local usage = redis.call('GET', KEYS[1])
+            if not usage then
+                return {0, 0}
+            end
+            
+            local ttl = redis.call('TTL', KEYS[1])
+            if ttl < 0 then
+                ttl = 0
+            end
+            
+            return {tonumber(usage), ttl}
+            """, List.class);
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final RateLimitRedisProperties properties;
 
     public RateLimitRedisService(StringRedisTemplate redisTemplate, ObjectMapper objectMapper,
-            RateLimitRedisProperties properties) {
+                                 RateLimitRedisProperties properties) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.properties = properties;
@@ -114,27 +134,4 @@ public class RateLimitRedisService {
 
     public record UsageSnapshot(long usage, long ttlSeconds) {
     }
-
-    private static final RedisScript<List> INCREMENT_USAGE_SCRIPT = RedisScript.of("""
-            local count = redis.call('INCR', KEYS[1])
-            if count == 1 then
-                redis.call('EXPIRE', KEYS[1], ARGV[1])
-            end
-            local ttl = redis.call('TTL', KEYS[1])
-            return {count, ttl}
-            """, List.class);
-
-    private static final RedisScript<List> GET_USAGE_SCRIPT = RedisScript.of("""
-            local usage = redis.call('GET', KEYS[1])
-            if not usage then
-                return {0, 0}
-            end
-
-            local ttl = redis.call('TTL', KEYS[1])
-            if ttl < 0 then
-                ttl = 0
-            end
-
-            return {tonumber(usage), ttl}
-            """, List.class);
 }

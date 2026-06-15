@@ -1,29 +1,23 @@
 package com.example.demo.service;
 
-import java.util.List;
-import java.time.Instant;
-
+import com.example.demo.config.PagingProperties;
+import com.example.demo.dto.*;
+import com.example.demo.exception.RateLimitExceededException;
+import com.example.demo.exception.RateLimitNotFoundException;
+import com.example.demo.model.CachedRateLimitConfig;
+import com.example.demo.model.RateLimit;
+import com.example.demo.mq.RateLimitEventPublisher;
+import com.example.demo.repository.RateLimitRepository;
+import com.example.demo.service.RateLimitRedisService.UsageIncrementResult;
+import com.example.demo.service.RateLimitRedisService.UsageSnapshot;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.dto.CheckAccessResponse;
-import com.example.demo.dto.CreateLimitRequest;
-import com.example.demo.dto.LimitResponse;
-import com.example.demo.dto.PagedLimitResponse;
-import com.example.demo.dto.UsageResponse;
-import com.example.demo.config.PagingProperties;
-import com.example.demo.exception.RateLimitExceededException;
-import com.example.demo.exception.RateLimitNotFoundException;
-import com.example.demo.model.CachedRateLimitConfig;
-import com.example.demo.model.RateLimit;
-import com.example.demo.dto.RateLimitEventMessage;
-import com.example.demo.mq.RateLimitEventPublisher;
-import com.example.demo.repository.RateLimitRepository;
-import com.example.demo.service.RateLimitRedisService.UsageIncrementResult;
-import com.example.demo.service.RateLimitRedisService.UsageSnapshot;
+import java.time.Instant;
+import java.util.List;
 
 @Service
 public class RateLimitService {
@@ -38,8 +32,8 @@ public class RateLimitService {
     private final RateLimitEventPublisher eventPublisher;
 
     public RateLimitService(RateLimitRepository rateLimitRepository,
-            RateLimitRedisService rateLimitRedisService, PagingProperties pagingProperties,
-            RateLimitEventPublisher eventPublisher) {
+                            RateLimitRedisService rateLimitRedisService, PagingProperties pagingProperties,
+                            RateLimitEventPublisher eventPublisher) {
         this.rateLimitRepository = rateLimitRepository;
         this.rateLimitRedisService = rateLimitRedisService;
         this.pagingProperties = pagingProperties;
@@ -134,7 +128,7 @@ public class RateLimitService {
     }
 
     private void publishCheckEvent(String apiKey, CachedRateLimitConfig config, long usage,
-            long remaining, boolean allowed) {
+                                   long remaining, boolean allowed) {
         eventPublisher.publish(new RateLimitEventMessage(
                 allowed ? EVENT_TYPE_ALLOWED : EVENT_TYPE_EXCEEDED, apiKey, allowed, usage,
                 config.limit(), config.windowSeconds(), remaining, Instant.now()));
