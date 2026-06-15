@@ -75,10 +75,10 @@ public class RateLimitRedisService {
     }
 
     public UsageIncrementResult incrementUsage(String apiKey, int windowSeconds) {
-        List result = redisTemplate.execute(INCREMENT_USAGE_SCRIPT, List.of(usageKey(apiKey)),
+        List<?> result = redisTemplate.execute(INCREMENT_USAGE_SCRIPT, List.of(usageKey(apiKey)),
                 String.valueOf(windowSeconds));
 
-        if (result == null || result.size() < 2) {
+        if (result.size() < 2) {
             return new UsageIncrementResult(0, 0);
         }
 
@@ -89,7 +89,7 @@ public class RateLimitRedisService {
 
     public long getTtlSeconds(String apiKey) {
         Long ttlSeconds = redisTemplate.getExpire(usageKey(apiKey), TimeUnit.SECONDS);
-        return ttlSeconds == null || ttlSeconds < 0 ? 0 : ttlSeconds;
+        return ttlSeconds < 0 ? 0 : ttlSeconds;
     }
 
     public long getUsage(String apiKey) {
@@ -100,7 +100,7 @@ public class RateLimitRedisService {
     public UsageSnapshot getUsageSnapshot(String apiKey) {
         List<?> result = redisTemplate.execute(GET_USAGE_SCRIPT, List.of(usageKey(apiKey)));
 
-        if (result == null || result.size() < 2) {
+        if (result.size() < 2) {
             return new UsageSnapshot(0, 0);
         }
 

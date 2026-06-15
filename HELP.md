@@ -1,22 +1,42 @@
 # Rate Limiter API Help
 
-## Start Dependencies
+## Quick Start (Everything in Docker)
+
+Start all services including the app:
 
 ```bash
-docker-compose up -d
+docker compose up -d --build
 ```
 
-## Run Application
+This starts MySQL, Redis, RocketMQ (namesrv + broker + console), and the Spring Boot app.
+The app is configured with `rocketmq.enabled=true` by default.
+
+Services:
+
+| Service | URL |
+|---|---|
+| App API | http://localhost:8080 |
+| RocketMQ Dashboard | http://localhost:8088 |
+
+## Run App Locally (without Docker)
 
 ```bash
-./mvnw spring-boot:run
+# Start infrastructure only
+docker compose up -d mysql redis rocketmq-namesrv rocketmq-broker rocketmq-console
+
+# Run the app on your host
+./mvnw spring-boot:run -Dspring-boot.run.arguments="--rocketmq.enabled=true"
 ```
 
-Base URL:
+## Run Tests
 
-```text
-http://localhost:8080
+```bash
+./mvnw test
 ```
+
+The integration test (`RateLimitIntegrationTest`) uses Testcontainers to spin up
+real MySQL and Redis containers automatically. RocketMQ is not needed for tests
+(it defaults to `NoopRateLimitEventPublisher`).
 
 ## Create Or Update Limit
 
