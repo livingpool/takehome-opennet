@@ -31,7 +31,7 @@ services:
       - redis_data:/data
 
   rocketmq-namesrv:
-    image: apache/rocketmq:5.1.4
+    image: apache/rocketmq:5.5.0
     container_name: rocketmq-namesrv
     ports:
       - "9876:9876"
@@ -39,13 +39,13 @@ services:
       JAVA_OPT_EXT: "-Xms256m -Xmx256m -Xmn128m"
     command: sh mqnamesrv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9876"]
+      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/9876'"]
       interval: 15s
       timeout: 10s
       retries: 5
 
   rocketmq-broker:
-    image: apache/rocketmq:5.1.4
+    image: apache/rocketmq:5.5.0
     container_name: rocketmq-broker
     depends_on:
       - rocketmq-namesrv
@@ -60,15 +60,26 @@ services:
     command: sh mqbroker -c /home/rocketmq/rocketmq-5.1.4/conf/broker.conf
 
   rocketmq-console:
-    image: styletang/rocketmq-console-ng:1.0.0
+    image: apacherocketmq/rocketmq-dashboard:2.1.0
     container_name: rocketmq-console
     restart: always
     ports:
-      - "8088:8080"
+      - "8088:8082"
     environment:
       JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
     depends_on:
       - rocketmq-namesrv
+
+  # rocketmq-console:
+  #   image: styletang/rocketmq-console-ng:1.0.0
+  #   container_name: rocketmq-console
+  #   restart: always
+  #   ports:
+  #     - "8088:8080"
+  #   environment:
+  #     JAVA_OPTS: "-Drocketmq.namesrv.addr=rocketmq-namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+  #   depends_on:
+  #     - rocketmq-namesrv
 
 volumes:
   mysql_data:
